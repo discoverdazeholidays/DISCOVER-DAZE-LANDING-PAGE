@@ -1,0 +1,105 @@
+{
+  "theme": "luxury_high_contrast",
+  "typography": {
+    "headings": "Playfair Display, serif",
+    "body": "Outfit, sans-serif",
+    "notes": "Use `tracking-tight` for large headings (H1/H2). Use wide letter-spacing (`tracking-[0.2em]`) for uppercase overlines and labels. Combine `font-light` or `font-normal` (Playfair) for elegance with `font-medium` (Outfit) for readable body text. Never use generic fonts for headings."
+  },
+  "colors": {
+    "primary": "#0A192F",
+    "secondary": "#D4AF37",
+    "background_light": "#FAFAFA",
+    "background_dark": "#111111",
+    "text_dark": "#1A1A1A",
+    "text_light": "#FFFFFF",
+    "accent_whatsapp": "#25D366",
+    "accent_call": "#007AFF",
+    "notes": "Palette: White, Gold (#D4AF37), Deep Navy (#0A192F), Soft Black (#111111). Deep Navy and Soft Black are used for high-end cinematic base and footers. Gold for luxury accents and subtle borders. White for spacious content sections. WhatsApp CTA must be unmistakable Green (#25D366)."
+  },
+  "layouts": {
+    "hero": "Cinematic full-screen (`min-h-screen`) with a dark overlay (`bg-black/40` to `bg-black/50`). Use Framer Motion for a masked line-by-line text reveal on load.",
+    "bento_grid": "For Highlights and 'Why Book With Us', avoid generic equal squares. Use an asymmetric 'Tetris' Grid (e.g., mixing `col-span-12 md:col-span-8` and `col-span-4`) to create visual tension and editorial feel.",
+    "spacing": "Extremely generous. Sections must have `py-24` or `py-32` to breathe. Container widths should max out at `max-w-7xl` with `px-6` or `px-8`."
+  },
+  "visual_enhancers": {
+    "glassmorphism": "Used for the sticky Attention Bar, Lead Capture floating elements, and Trust Bar. Needs high-end blur: `backdrop-blur-xl bg-white/10` (over dark) or `bg-white/80` (over light) with a delicate 1px `border-white/20` inside.",
+    "animations": "Lenis for smooth scroll (momentum scrolling). Framer Motion `whileInView` for staggered reveals. Slow editorial marquee (`react-fast-marquee`) for reviews.",
+    "borders": "Avoid heavy shadows. Use 1px solid borders in Gold/Navy with low opacity (`border-black/5` or `border-[#D4AF37]/30`) to define edges crisply.",
+    "3d_parallax": "Implement a subtle parallax effect on the hero background and perhaps float some elements gently."
+  },
+  "components": [
+    {
+      "name": "Attention Bar",
+      "instruction": "Sticky at the top (`z-[60]`). Dark Navy or Soft Black background, Gold text. Must include an animated countdown timer. Text: '🔥 LIMITED TIME OFFER — SAVE UP TO 30% OFF — Limited Seats • Limited Time Only'."
+    },
+    {
+      "name": "Hero Section",
+      "instruction": "Full screen cinematic. Background MUST be a looping HTML5 video (or a high-res cinematic snow mountain image if video unavailable). Overlay: 'Explore Kashmir in Luxury — 6 Days / 5 Nights Super Deluxe Package — Starting from just ₹9,800 per person — Luxury Hotels • Houseboat • Shikara Ride • Daily Meals • Private Cab'. Two large CTAs: 'Book on WhatsApp' (Green) and 'Call Now' (White/Gold outline). Includes signature on-load moment (masked line-by-line reveal)."
+    },
+    {
+      "name": "Floating WhatsApp Button",
+      "instruction": "Fixed bottom right (`z-50`). Should have a subtle pulse animation and a glassmorphism tooltip saying 'Chat with an Expert'."
+    },
+    {
+      "name": "Trust Bar",
+      "instruction": "Horizontal bar directly below hero. Icons + Text: 5-star rating, Local Kashmir Experts, No Hidden Charges, Instant Confirmation, 24x7 Support."
+    },
+    {
+      "name": "Package Highlights Cards",
+      "instruction": "Premium icon cards in an asymmetric grid. 3 Star Super Deluxe Hotels, Daily Buffet Breakfast & Dinner, Private Cab, Complimentary 1 Hour Shikara Ride, Sonamarg, Gulmarg, Pahalgam, Srinagar Houseboat Stay."
+    },
+    {
+      "name": "Itinerary Timeline",
+      "instruction": "Vertical layout. A beautiful scroll-linked timeline line connecting Day 1 to Day 6. Deeply interactive, revealing day details as the user scrolls."
+    },
+    {
+      "name": "Pricing Cards",
+      "instruction": "Luxury pricing presentation. Do not use generic SaaS pricing cards. Use editorial presentation for: Couple ₹32,300, Group of 5 ₹9,800pp, Group of 6 ₹10,700pp, Group of 9 'Best Value' ₹10,400pp, Budget from ₹8,000pp. Highlight 'Best Value' with a Gold border/glow."
+    },
+    {
+      "name": "Reviews Marquee",
+      "instruction": "Animated Google-style reviews. Slow drifting marquee. Clean, glass-like cards with 5 gold stars."
+    },
+    {
+      "name": "Lead Capture Form",
+      "instruction": "High-contrast section. Fields: Full Name, Phone, Number of Guests, Travel Month. Submit buttons: 'Get Instant Quote' + 'Call Now' (redirect to WA). Must feel highly secure and premium."
+    }
+  ],
+  "image_urls": {
+    "hero_fallback": {
+      "url": "https://images.pexels.com/photos/32261635/pexels-photo-32261635.jpeg",
+      "description": "Dramatic snow mountain peak (Himalayas) for the hero background poster or fallback."
+    },
+    "shikara_ride": {
+      "url": "https://images.unsplash.com/photo-1569852837227-1d0d3af93456?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHw0fHxLYXNobWlyJTIwRGFsJTIwTGFrZSUyMFNoaWthcmF8ZW58MHx8fHwxNzgzMzU3MzM4fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Shikara on Dal Lake"
+    },
+    "houseboat_stay": {
+      "url": "https://images.pexels.com/photos/29264394/pexels-photo-29264394.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Rustic Houseboat reflection"
+    },
+    "luxury_room": {
+      "url": "https://images.pexels.com/photos/237371/pexels-photo-237371.jpeg",
+      "description": "Contemporary modern hotel room"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Construct the page with ONE goal: maximize WhatsApp/Phone leads. No main navigation menu, no footer links except privacy/terms.",
+    "Use HTML/Tailwind for the landing page structure to allow extreme layout flexibility and asymmetry, bypassing restrictive UI card components where art direction is needed.",
+    "Use Shadcn UI for the Lead Capture Form, Select, Accordion (FAQ), and Toasts.",
+    "Apply `data-testid` to all CTAs, form inputs, accordion items, and the attention bar.",
+    "Ensure 'Book on WhatsApp' buttons redirect to `https://wa.me/917006186445`.",
+    "Implement Lenis smooth scrolling inside `App.js` or main layout.",
+    "Use `framer-motion` extensively for scroll reveals and the hero staggered text animation."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Never apply universal transition (e.g., `transition: all`). This breaks framer-motion transforms.",
+    "Do NOT use `text-align: center` on the global App container.",
+    "Use 2-3x more spacing than feels normal. Luxury requires white space.",
+    "Ensure all text meets APCA/WCAG contrast ratios against backgrounds, especially over images.",
+    "Avoid generic, AI-slop layouts. Every component should feel deliberately designed.",
+    "Use layered z-indexes to build depth (background, particles, glass overlay, content).",
+    "All interactive elements MUST have visible, stylized hover/focus states.",
+    "DO NOT use generic emojis for icons. Use a proper icon library (e.g. lucide-react)."
+  ]
+}
