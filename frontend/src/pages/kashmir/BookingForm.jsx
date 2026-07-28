@@ -41,11 +41,20 @@ export default function BookingForm() {
     `Travel Date: ${form.travel_date || "-"}\nTravellers: ${form.guests || "-"}\nPackage: ${form.package || "-"}` +
     (form.message ? `\nMessage: ${form.message}` : "");
 
-  const submitLead = async () => {
+  const isMobile = () =>
+    typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  const validate = () => {
     if (!form.full_name.trim() || !form.phone.trim()) {
       toast.error("Please enter your name and phone number.");
       return false;
     }
+    return true;
+  };
+
+  // Save the lead to the DB (backend also emails discoverdazeholidays@gmail.com via Resend).
+  // Returns true only on success. On failure it surfaces the real error and returns false.
+  const postLead = async () => {
     setLoading(true);
     try {
       await axios.post(`${API}/leads`, {
@@ -58,12 +67,17 @@ export default function BookingForm() {
         message: form.message,
       });
       trackLead({ value: 9800, currency: "INR" });
-      toast.success("Enquiry received! Connecting you on WhatsApp now…");
+      toast.success("Enquiry received! Opening WhatsApp…");
       return true;
-    } catch (e) {
-      // Don't lose the lead — still hand off to WhatsApp, but don't inflate conversion counts.
-      toast.message("Opening WhatsApp to complete your enquiry…");
-      return true;
+    } catch (err) {
+      const detail =
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Network error. Please check your connection and try again.";
+      toast.error(`Submission failed: ${detail}`);
+      // eslint-disable-next-line no-console
+      console.error("Lead submission failed:", err);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -71,13 +85,27 @@ export default function BookingForm() {
 
   const handleBook = async (e) => {
     e.preventDefault();
-    const ok = await submitLead();
-    if (ok) window.open(waLink(buildWaMessage()), "_blank");
+    if (!validate()) return;
+    const url = waLink(buildWaMessage());
+    // Desktop: pre-open the tab synchronously inside the click gesture so it is NOT
+    // blocked after the await. Mobile: navigate the current tab (most reliable for deep links).
+    const preWin = isMobile() ? null : window.open("", "_blank");
+    const ok = await postLead();
+    if (!ok) {
+      if (preWin) preWin.close();
+      return; // backend failed — show error, do not silently continue
+    }
+    if (preWin && !preWin.closed) {
+      preWin.location.href = url;
+    } else {
+      window.location.href = url;
+    }
   };
 
   const handleCall = async () => {
-    await submitLead();
-    window.location.href = `tel:${PHONE_TEL}`;
+    if (!validate()) return;
+    const ok = await postLead();
+    if (ok) window.location.href = `tel:${PHONE_TEL}`;
   };
 
   return (

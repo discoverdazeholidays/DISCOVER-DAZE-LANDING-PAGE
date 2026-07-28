@@ -32,3 +32,9 @@ High-converting, luxury Google/Meta Ads landing page for the "6 Days Kashmir Sup
 - Testimonials with photos + 4.9 Google rating; 5 trust badges.
 - Meta Pixel + Google Ads tracking wired via env placeholders (REACT_APP_META_PIXEL_ID, REACT_APP_GOOGLE_ADS_ID, REACT_APP_GOOGLE_ADS_CONVERSION_LABEL); trackLead on submit, trackContact on CTA clicks. Console-logs events until real IDs added.
 - Verified via testing_agent iteration_3: backend 100%, frontend 100%. Fixed WA-redirect URIError (decodeURIComponent on '30% OFF').
+
+## Fixes (2025-12) — Tracking + Lead submission + Mobile
+- GA4 Measurement ID corrected to G-BBKY82CFQG (env REACT_APP_GA4_ID); page_view on load + form_submit/generate_lead on submit (verified via dataLayer + gtag/js request).
+- Booking form error handling: on backend failure now shows 'Submission failed: <detail>' toast and does NOT open WhatsApp (no silent continue).
+- MOBILE WhatsApp fix (RCA): window.open() after await lost user-activation on iOS Safari/Android Chrome → blocked. Fix: desktop pre-opens tab synchronously in click gesture then sets location; mobile uses window.location.href to the wa.me deep link. Verified via testing_agent iteration_4 (mobile navigates to wa.me, desktop opens tab).
+- Backend verified healthy: /api/leads GET/POST 200, Resend emails sending (daily quota ~24/50), Mongo OK. 5 real customer leads preserved.
