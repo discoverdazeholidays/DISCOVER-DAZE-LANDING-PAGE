@@ -10,6 +10,7 @@ const GOOGLE_ADS_LABEL = process.env.REACT_APP_GOOGLE_ADS_CONVERSION_LABEL;
 const isReal = (v) => v && !/^YOUR_|^AW-XXXX/.test(v);
 
 let initialised = false;
+let generateLeadFired = false; // ensures the GA4 generate_lead conversion fires exactly once
 
 // Load the shared gtag.js library once (used by GA4 + Google Ads).
 function ensureGtag(primaryId) {
@@ -72,7 +73,13 @@ export function trackLead(payload = {}) {
       // GA4 form-submission events
       if (isReal(GA4_ID)) {
         window.gtag("event", "form_submit", { send_to: GA4_ID, ...payload });
-        window.gtag("event", "generate_lead", { send_to: GA4_ID, ...payload });
+        // GA4 lead conversion — fire EXACTLY ONCE per session, after a successful submit
+        if (!generateLeadFired) {
+          window.gtag("event", "generate_lead", { send_to: GA4_ID, ...payload });
+          generateLeadFired = true;
+          // eslint-disable-next-line no-console
+          console.log("[track] GA4 generate_lead (fired once)", GA4_ID);
+        }
       }
       // Google Ads conversion
       if (isReal(GOOGLE_ADS_ID)) {
