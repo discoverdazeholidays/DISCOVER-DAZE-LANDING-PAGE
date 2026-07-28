@@ -16,11 +16,21 @@ export default function LiveActivity() {
   const [idx, setIdx] = useState(0);
   const [show, setShow] = useState(false);
   const [viewers, setViewers] = useState(27);
+  const [pastHero, setPastHero] = useState(false);
+
+  // Only reveal after the user scrolls past the hero so it never covers the hero price/CTAs
+  useEffect(() => {
+    const onScroll = () => setPastHero(window.scrollY > window.innerHeight * 0.85);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
-    const first = setTimeout(() => setShow(true), 4000);
+    if (!pastHero) return;
+    const first = setTimeout(() => setShow(true), 800);
     return () => clearTimeout(first);
-  }, []);
+  }, [pastHero]);
 
   useEffect(() => {
     if (!show) return;
@@ -43,8 +53,10 @@ export default function LiveActivity() {
 
   const b = BOOKINGS[idx];
 
+  if (!pastHero) return null;
+
   return (
-    <div className="pointer-events-none fixed bottom-24 left-4 z-40 hidden max-w-[300px] flex-col gap-2 sm:flex" data-testid="live-activity">
+    <div className="pointer-events-none fixed bottom-6 left-4 z-40 hidden max-w-[300px] flex-col gap-2 sm:flex" data-testid="live-activity">
       {/* Persistent viewers pill */}
       <div className="pointer-events-auto flex w-fit items-center gap-2 rounded-full border border-white/15 bg-[#0A192F]/90 px-3.5 py-2 text-white shadow-xl backdrop-blur-md">
         <Eye className="h-4 w-4 text-[#D4AF37]" />
