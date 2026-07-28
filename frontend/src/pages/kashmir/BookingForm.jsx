@@ -13,7 +13,11 @@ import { Reveal, SectionHeading } from "./shared";
 import { waLink, PHONE_TEL, GUEST_OPTIONS, PACKAGE_OPTIONS } from "./data";
 import { trackLead } from "./tracking";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// Backend base URL. If REACT_APP_BACKEND_URL is a full http(s) URL, call it directly.
+// Otherwise fall back to a same-origin "/api" path, which works with the Vercel
+// rewrite/proxy (see frontend/vercel.json) that forwards /api/* to the backend.
+const RAW_BACKEND = process.env.REACT_APP_BACKEND_URL;
+const API = `${RAW_BACKEND && /^https?:\/\//.test(RAW_BACKEND) ? RAW_BACKEND : ""}/api`;
 
 const empty = { full_name: "", phone: "", email: "", travel_date: "", guests: "", package: "", message: "" };
 
