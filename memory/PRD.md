@@ -1,0 +1,26 @@
+# PRD — 6 Days Kashmir Super Deluxe Landing Page (Discover Daze Holidays)
+
+## Problem Statement
+High-converting, luxury Google/Meta Ads landing page for the "6 Days Kashmir Super Deluxe Package". Single goal: maximize WhatsApp + phone call inquiries. Dedicated route, does NOT touch existing homepage. Luxury palette (White, Gold #D4AF37, Deep Navy #0A192F, Soft Black #111). Glassmorphism, framer-motion, Lenis smooth scroll. Awwwards-level craft.
+
+## Architecture
+- Frontend: React (CRA/craco), Tailwind, framer-motion, lenis, react-fast-marquee, shadcn/ui.
+- Route: `/kashmir-super-deluxe` (homepage `/` untouched).
+- Backend: FastAPI + MongoDB. `POST /api/leads` (save lead + async Resend email), `GET /api/leads`.
+- Email: Resend (onboarding@resend.dev → discoverdazeholidays@gmail.com), subject "New Lead – Discover Daze Holidays".
+
+## Core Requirements (static)
+- Attention bar + evergreen daily countdown, cinematic hero video, floating WhatsApp+Call, trust bar, highlights bento, vertical itinerary timeline, what's included, pricing cards (Best Value), why-us, animated reviews marquee, urgency, lead form, FAQ, contact.
+- All WhatsApp CTAs → wa.me/917006186445. Phone → +917006186445.
+
+## Implemented (2025-12)
+- Full landing page with 13 sections, all CTAs wired, floating buttons.
+- Lead form: saves to Mongo `leads`, sends Resend email, opens WhatsApp prefilled; "Call Now" also saves lead then dials.
+- Verified: curl + UI submit → lead persisted + email id returned by Resend. Screenshots confirm hero, highlights, itinerary, pricing, lead form.
+
+## Backlog / Next
+- P1: Verify a custom domain in Resend for guaranteed deliverability + higher quota (free/test mode caps ~monthly quota and delivers reliably only to account owner).
+- P1: Simple `/leads` admin view (protected) to browse inquiries.
+- P2: Meta Pixel / Google Ads conversion tracking on CTA clicks + form submit.
+- P2: Replace stock hero video with client's own drone footage.
+- P2: Deploy to Vercel (user requested — front the FastAPI backend appropriately).
