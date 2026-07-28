@@ -24,3 +24,11 @@ High-converting, luxury Google/Meta Ads landing page for the "6 Days Kashmir Sup
 - P2: Meta Pixel / Google Ads conversion tracking on CTA clicks + form submit.
 - P2: Replace stock hero video with client's own drone footage.
 - P2: Deploy to Vercel (user requested — front the FastAPI backend appropriately).
+
+## Redesign v2 (2025-12) — Conversion-focused
+- Image parallax hero (HeroV2, /images/kashmir-hero.jpg, no video) with new headline "6 Days Kashmir Super Deluxe — Flat 30% OFF".
+- FOMO: FomoBanner ("30% OFF Ends Soon" + daily countdown), LiveActivity (viewers + families booked), urgency chips, MobileCTABar (fixed bottom, mobile).
+- Booking form now captures Name, Phone, Email, Travel Date, Travellers, Package, Message → saves to Mongo + Resend email (email+travel_date added) + WhatsApp prefilled + success toast.
+- Testimonials with photos + 4.9 Google rating; 5 trust badges.
+- Meta Pixel + Google Ads tracking wired via env placeholders (REACT_APP_META_PIXEL_ID, REACT_APP_GOOGLE_ADS_ID, REACT_APP_GOOGLE_ADS_CONVERSION_LABEL); trackLead on submit, trackContact on CTA clicks. Console-logs events until real IDs added.
+- Verified via testing_agent iteration_3: backend 100%, frontend 100%. Fixed WA-redirect URIError (decodeURIComponent on '30% OFF').
