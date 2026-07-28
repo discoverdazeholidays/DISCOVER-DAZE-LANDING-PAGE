@@ -24,6 +24,15 @@ export default function Urgency() {
         <Reveal delay={0.2}>
           <p className="mt-4 font-body text-white/65">This exclusive ads-only price ends soon. Lock your seats before midnight.</p>
         </Reveal>
+        <Reveal delay={0.25}>
+          <div className="mt-6 flex flex-wrap justify-center gap-2.5">
+            {["Only a few seats left", "High demand this season", "Book before prices increase"].map((c) => (
+              <span key={c} className="rounded-full border border-[#D4AF37]/30 bg-white/[0.04] px-4 py-1.5 text-xs font-medium text-white/85">
+                {c}
+              </span>
+            ))}
+          </div>
+        </Reveal>
         <Reveal delay={0.3}>
           <div className="mt-10 flex justify-center">
             <CountdownUnits />

@@ -11,10 +11,22 @@ export const BRAND = "Discover Daze Holidays";
 export const waLink = (message) =>
   `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
 
+export const scrollToQuote = () => {
+  const el = document.getElementById("quote");
+  if (!el) return;
+  if (typeof window !== "undefined" && window.__lenis) {
+    window.__lenis.scrollTo(el, { offset: -10, duration: 1.2 });
+  } else {
+    el.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 export const DEFAULT_WA_MSG =
   "Hi Discover Daze Holidays! I'm interested in the 6 Days Kashmir Super Deluxe Package. Please share the best price & availability.";
 
 export const IMAGES = {
+  heroLocal: "/images/kashmir-hero.jpg",
+  heroLocal2: "/images/kashmir-hero-2.jpg",
   heroPoster:
     "https://images.pexels.com/photos/32261635/pexels-photo-32261635.jpeg",
   shikara:
@@ -93,3 +105,32 @@ export const FAQS = [
   { q: "How do I confirm my booking?", a: "Simply message us on WhatsApp or call +91 7006186445. We confirm instantly and guide you through a small advance to lock your seats." },
   { q: "What is the best time to visit Kashmir?", a: "Kashmir is stunning year-round — tulips in spring, lush meadows in summer, and snow in winter. Share your travel month and we'll advise the best experience." },
 ];
+
+
+export const TESTIMONIALS = [
+  { name: "Aarav Mehta", city: "Mumbai", photo: "https://randomuser.me/api/portraits/men/32.jpg", text: "Our Kashmir trip was perfectly planned. Every detail — hotels, cab, meals — was flawless. Worth every rupee!" },
+  { name: "Sana Kapoor", city: "Delhi", photo: "https://randomuser.me/api/portraits/women/44.jpg", text: "Best hospitality and amazing hotels. The houseboat night on Dal Lake was absolutely magical." },
+  { name: "Rohan Verma", city: "Bengaluru", photo: "https://randomuser.me/api/portraits/men/54.jpg", text: "Everything was smooth from pickup to drop. Truly stress-free and premium throughout." },
+  { name: "Priya Nair", city: "Kochi", photo: "https://randomuser.me/api/portraits/women/68.jpg", text: "Gulmarg Gondola & Sonamarg were unforgettable. Our driver was so kind and knowledgeable." },
+  { name: "Imran Sheikh", city: "Hyderabad", photo: "https://randomuser.me/api/portraits/men/76.jpg", text: "Transparent pricing, zero hidden charges. Exactly what was promised. Highly recommend Discover Daze." },
+  { name: "Neha Sharma", city: "Pune", photo: "https://randomuser.me/api/portraits/women/12.jpg", text: "Booked for my family of 6 — clean cars, lovely hotels and instant WhatsApp support. 5 stars!" },
+];
+
+export const TRUST_BADGES = [
+  { icon: "MapPin", title: "Local Kashmir Experts" },
+  { icon: "Headphones", title: "24×7 Support" },
+  { icon: "ReceiptText", title: "No Hidden Charges" },
+  { icon: "ShieldCheck", title: "Secure Booking" },
+  { icon: "BadgeIndianRupee", title: "Best Price Guarantee" },
+];
+
+export const PACKAGE_OPTIONS = [
+  "Couple Package — ₹32,300",
+  "Group of 5 — ₹9,800/person",
+  "Group of 6 — ₹10,700/person",
+  "Group of 9 — ₹10,400/person (Best Value)",
+  "Budget Package — from ₹8,000/person",
+  "Not sure — need help choosing",
+];
+
+export const GUEST_OPTIONS = ["1-2 (Couple)", "3-5", "6-9", "10+"];

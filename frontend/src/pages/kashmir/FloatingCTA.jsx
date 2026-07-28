@@ -7,7 +7,7 @@ export default function FloatingCTA() {
   const [showTip, setShowTip] = useState(true);
 
   return (
-    <div className="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-5 right-4 z-50 hidden flex-col items-end gap-3 sm:bottom-6 sm:right-6 sm:flex">
       {/* Call button */}
       <motion.a
         href={`tel:${PHONE_TEL}`}

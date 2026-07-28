@@ -55,7 +55,9 @@ class StatusCheckCreate(BaseModel):
 class LeadCreate(BaseModel):
     full_name: str
     phone: str
+    email: Optional[str] = None
     guests: Optional[str] = None
+    travel_date: Optional[str] = None
     travel_month: Optional[str] = None
     package: Optional[str] = None
     message: Optional[str] = None
@@ -66,7 +68,9 @@ class Lead(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     full_name: str
     phone: str
+    email: Optional[str] = None
     guests: Optional[str] = None
+    travel_date: Optional[str] = None
     travel_month: Optional[str] = None
     package: Optional[str] = None
     message: Optional[str] = None
@@ -97,7 +101,8 @@ def _build_lead_email_html(lead: Lead, when_str: str) -> str:
             <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
               {row("Name", lead.full_name)}
               {row("Phone", lead.phone)}
-              {row("Travel Month", lead.travel_month)}
+              {row("Email", lead.email)}
+              {row("Travel Date", lead.travel_date or lead.travel_month)}
               {row("Number of Travellers", lead.guests)}
               {row("Selected Package", lead.package)}
               {row("Message", lead.message)}

@@ -24,7 +24,9 @@ class TestLeads:
         payload = {
             "full_name": "TEST_John Doe",
             "phone": "+919999999999",
+            "email": "test_john@example.com",
             "guests": "3-5",
+            "travel_date": "2026-05-15",
             "travel_month": "June",
             "package": "Kashmir Super Deluxe",
             "message": "Please share more details"
@@ -34,6 +36,8 @@ class TestLeads:
         data = r.json()
         assert data["full_name"] == payload["full_name"]
         assert data["phone"] == payload["phone"]
+        assert data["email"] == "test_john@example.com"
+        assert data["travel_date"] == "2026-05-15"
         assert data["guests"] == "3-5"
         assert data["travel_month"] == "June"
         assert "id" in data and isinstance(data["id"], str) and len(data["id"]) > 0

@@ -1,0 +1,31 @@
+{
+  "summary": "Backend + frontend re-tested after redesign. Backend: 5/5 pytest pass (including new email + travel_date fields echoed by POST /api/leads and Resend log 'Lead notification email sent' observed). Frontend: landing page renders at both '/' and '/kashmir-super-deluxe' with data-testid='kashmir-landing-page' and H1 '6 Days Kashmir Super Deluxe — Flat 30% OFF'. All required sections (attention-bar, trust-bar, highlights/itinerary/included/pricing/why-us/testimonials with 4.9 Google rating + photos, urgency, faq, contact, live-activity, lead-form-section, lead-form) present. hero-quote-btn scrolls to form, hero-whatsapp-btn logs '[track] Contact whatsapp', empty submit shows error toast and does NOT POST, filled submit returns 200 with email+travel_date, '[track] Lead conversion' fires, success toast appears, mobile-cta-bar visible on 390px viewport. FOUND ONE CRITICAL BUG in BookingForm submit path: window.open(WhatsApp) never runs because decodeURIComponent throws URIError on the literal '30% OFF' inside the pre-encoded WA message.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "BookingForm.handleBook", "issue": "After a successful lead POST, window.open(WhatsApp) is wrapped in decodeURIComponent(buildWaMessage()). buildWaMessage() contains the literal substring 'Flat 30% OFF' (raw % followed by space/O — not a valid URI escape) mixed with encoded '%0A' newlines. decodeURIComponent therefore throws 'URIError: URI malformed' and the WhatsApp redirect never fires. Console shows a red 'Uncaught runtime errors: URI malformed / decodeURIComponent' overlay after every submit.", "selector": "[data-testid=\"lead-submit-btn\"]", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Booking form -> WhatsApp handoff", "issue": "Lead is saved (200) and toast shows, but the WhatsApp tab never opens because of the URIError above. This breaks the entire 'redirects to WhatsApp with prefilled message' requirement in production for any user (not just Playwright).", "affected_selectors": ["[data-testid=\"lead-submit-btn\"]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_leads.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix BookingForm.jsx line 62: replace `window.open(waLink(decodeURIComponent(buildWaMessage())), \"_blank\")` with `window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${buildWaMessage()}`, \"_blank\")` — i.e. drop the decodeURIComponent, or rewrite buildWaMessage to return a raw (undecoded) string and call encodeURIComponent inside waLink. The safest patch is to change buildWaMessage to use real '\\n' newlines and no %-escapes, then let waLink apply encodeURIComponent once. Simple 1-line fix: `window.open(waLink(buildWaMessage().replace(/%0A/g, \"\\n\")), \"_blank\")` after also fixing the literal '30% OFF' -> '30%25 OFF' if you keep decoding. Recommend the buildWaMessage rewrite."
+  ],
+  "critical_code_review_comments": [
+    "BookingForm.jsx mixes URL-encoded newlines (%0A) with literal '%' characters (30% OFF) inside the same string and then double-decodes it — brittle. Store the message as plain text with real newlines and let waLink() do a single encodeURIComponent.",
+    "trackLead catch block still fires trackLead + shows a positive toast on network failure. That inflates conversion counts on real Meta/Google pixels. Consider showing an error toast when the POST fails.",
+    "Backend GET /api/leads has no pagination cap param (hardcoded 1000) — acceptable for MVP.",
+    "Backend send_lead_notification uses fire-and-forget; failures only appear in logs. Acceptable but worth surfacing metrics later."
+  ],
+  "updated_files": ["/app/backend/tests/test_leads.py", "/app/test_reports/iteration_2.json"],
+  "success_rate": {"backend": "100%", "frontend": "~93% (all sections/tracking/POST work, only the WA redirect step fails)"},
+  "test_credentials": "N/A - public landing page",
+  "seed_data_creation": "Created TEST_ leads: TEST_John Doe (via pytest) and TEST_UI Playwright (via UI). A few remain in MongoDB.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Only remaining bug is the decodeURIComponent URIError in BookingForm handleBook. Everything else — POST /api/leads with email+travel_date, Resend email log, tracking console events, mobile CTA bar, hero scroll, empty-form validation, both routes — is verified. After fix, only need to re-test that window.open receives a wa.me URL after submit (window.open override test in iteration_2 script).",
+  "rca of the issue": "buildWaMessage() returns a template literal containing both encoded newlines ('%0A') and the literal string 'Flat 30% OFF'. The '% O' sequence is not a valid percent-encoded triplet, so calling decodeURIComponent() on the full string throws URIError: URI malformed. The catch block in handleBook is only around submitLead — the decodeURIComponent+window.open on line 62 is outside the try, so the error surfaces to React's error boundary/overlay, the tab never opens, and only the toast+track fire. Repro: fill form, click Book Now on WhatsApp -> red error overlay appears, no new WA tab. Fix: remove decodeURIComponent (waLink already encodes) OR replace '30% OFF' -> '30%25 OFF' in the string OR rewrite buildWaMessage with plain '\\n' newlines."
+}
