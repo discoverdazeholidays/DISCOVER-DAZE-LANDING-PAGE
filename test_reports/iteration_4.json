@@ -1,0 +1,20 @@
+{
+  "summary": "Full end-to-end verification of the requested fixes. Backend 5/5 pytest pass (POST/GET /api/leads persists fields incl. email + travel_date; Mongo _id excluded; missing name/phone returns 400; backend log shows 'Lead notification email sent' via Resend, daily quota advancing). Frontend all 8 flows verified: (1) GA4 gtag.js request to googletagmanager.com/gtag/js?id=G-BBKY82CFQG fires on load; window.gtag is a function; dataLayer contains ['config','G-BBKY82CFQG']; console '[track] GA4 page_view G-BBKY82CFQG'. (2) After successful submit dataLayer has 'form_submit' and 'generate_lead' events with send_to=G-BBKY82CFQG. (3) DESKTOP (1920x1080): pre-opens a blank tab synchronously, awaits POST, then sets preWin.location.href to the wa.me URL — captured URL starts with 'https://wa.me/917006186445?text=' and contains '30%25' + encoded name/phone. Success toast 'Enquiry received! Opening WhatsApp…' shown. POST /api/leads returns 200. (4) MOBILE (iPhone UA, 390x844): submit triggers window.location.href navigation to wa.me deep link (verified by route interception + expect_navigation) — window.open was NOT called. This confirms the iOS Safari / Android Chrome bug is fixed. (5) ERROR handling: aborting POST /api/leads causes 'Submission failed: Network Error' toast AND NO wa.me open/navigation occurs. (6) VALIDATION: empty name/phone shows 'Please enter your name and phone number.' with 0 POSTs and 0 wa.me opens. (7) REGRESSION: pricing 'Book Now' does NOT open WhatsApp (0 wa.me calls); it scrolls to the form. (8) /kashmir-super-deluxe route renders the landing page; mobile-cta-bar is visible at 390px viewport.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_leads.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Mobile fix is correct: isMobile()?null:window.open('','_blank') ensures no cross-tab pop-up blocking on iOS/Android — the current tab navigates via window.location.href after POST success. Since the click gesture is still ongoing when POST resolves quickly, the deep link fires reliably.",
+    "Error path is clean: on POST failure preWin.close() is called and function returns; WhatsApp is NEVER opened silently. Error toast surfaces the real backend detail.",
+    "Minor (not blocking): Pricing 'Book Now' dispatches dd-select-package but in one test run the Package Select trigger still showed 'Select' — the dispatched packageValue may not match any PACKAGE_OPTIONS entry exactly. Consider auditing Pricing.jsx package strings vs data.js PACKAGE_OPTIONS. Regression itself (no WhatsApp opened) passes."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A - public landing page",
+  "seed_data_creation": "Created 3 TEST leads during UI runs (phones +9199TEST00001/2/3, name prefix TEST_). All 3 deleted from MongoDB after tests. 5 real customer leads preserved.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All requested behaviours verified. GA4 id G-BBKY82CFQG is live. Backend Resend daily quota was at 24/50 daily during this run; keep an eye if quota is hit (Resend will 429). Mobile navigation is via window.location.href — future tests should use route interception + wait_for_url('**wa.me**') because Playwright cannot follow the wa.me scheme.",
+  "rca of the issue": "Original mobile bug: window.open() called AFTER an await lost the user-activation flag and was blocked by iOS Safari / Android Chrome, so the button 'did nothing' after showing the toast. Fix (verified working): desktop pre-opens a blank tab synchronously inside the click gesture and later sets preWin.location.href; mobile bypasses window.open entirely and uses window.location.href which is not gesture-restricted for the current tab. Confirmed by route interception seeing exactly one navigation request to https://wa.me/917006186445?text=... after mobile submit and zero window.open calls."
+}
