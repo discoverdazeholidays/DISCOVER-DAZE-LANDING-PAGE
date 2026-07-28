@@ -1,0 +1,31 @@
+{
+  "summary": "Regression check after Vercel proxy + relative-URL fallback change in BookingForm.jsx and addition of frontend/vercel.json. Backend: all 12 pytest tests in /app/backend/tests/test_leads.py PASSED (health, POST 200 + persistence via GET, PUT/DELETE 405, validation 400, CORS preflight + POST for offers.discoverdazeholidays.com and discoverdazeholidays.com). Frontend Playwright regression on preview (REACT_APP_BACKEND_URL is a full URL) — all 6 flows PASSED: (1) Desktop happy path submits exactly ONE POST to the ABSOLUTE preview URL https://kashmir-luxury-tour.preview.emergentagent.com/api/leads → 200, success toast 'Enquiry received! Opening WhatsApp…' shown, no runtime overlay, WhatsApp URL captured via preWin.location.href starts with https://wa.me/917006186445?text= and contains 30%25 + encoded name/phone. (2) Full-URL branch of API base verified (POST goes to absolute preview URL, not same-origin). (3) Backend health: Lead notification email sent by Resend confirmed in backend log (ratelimit-remaining=9, no errors). (4) Error handling: routing /api/leads to abort → ERROR toast 'Submission failed: Network Error' shown, NO WhatsApp navigation and preWin.close() invoked. (5) Validation: empty name+phone → error toast 'Please enter your name and phone number.', no POST, no WhatsApp. (6) Mobile (iPhone UA, 390x844): POST goes to absolute preview URL, window.open NOT invoked, navigation to wa.me happens via window.location.href (intercepted via page.route('**wa.me**')). (7) Pricing 'Book Now' regression: all 5 pricing-book-btn-N buttons do NOT open WhatsApp and do NOT invoke window.open — they only dispatch dd-select-package and scroll to form.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_leads.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "BookingForm.jsx API base logic (line 19-20) correctly branches on full-URL vs relative — verified in preview it uses absolute URL. Note: vercel.json rewrite only applies on Vercel and cannot be validated from the Emergent preview (documented and not a regression).",
+    "handleBook desktop pre-opens window.open('', '_blank') in the click gesture — good popup-blocker mitigation. On mobile, window.location.href is used correctly (isMobile() UA regex matches iPhone/Android/Mobile).",
+    "server.py CORS: allow_credentials=True with fallback wildcard '*' in CORS_ORIGINS is invalid per spec — currently benign because allow_origin_regex handles *.discoverdazeholidays.com. Recommend setting CORS_ORIGINS explicitly in prod .env."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (12/12 pytest)", "frontend": "100% (6/6 regression flows: desktop happy, absolute-URL branch, error handling, validation, mobile, pricing)"},
+  "test_credentials": "none",
+  "seed_data_creation": "Created 2 test leads with TESTREG phone prefix; both DELETED via targeted MongoDB delete_many. 5 real customer leads preserved (verified count=5).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "No regression from the Vercel proxy + relative-URL fallback change. In preview, REACT_APP_BACKEND_URL is a full URL so the absolute-URL branch of API is used (POSTs go directly to https://kashmir-luxury-tour.preview.emergentagent.com/api/leads). vercel.json rewrite only activates on Vercel — untestable here (expected). Cleanup pattern: delete leads WHERE phone regex 'TESTREG' to protect the 5 real leads.",
+  "evidence": {
+    "desktop_post_url": "https://kashmir-luxury-tour.preview.emergentagent.com/api/leads",
+    "desktop_post_status": 200,
+    "desktop_wa_url_prefix": "https://wa.me/917006186445?text=Hi%20Discover%20Daze%20Holidays!...%20(Flat%2030%25%20OFF)...Name%3A%20TESTREG%20Desktop%20User...",
+    "mobile_wa_url_prefix": "https://wa.me/917006186445?text=... (captured via window.location.href, window.open NOT invoked)",
+    "resend_log": "Lead notification email sent: id=632e9dcc-... ratelimit-remaining=9",
+    "pricing_book_btn_count": 5
+  },
+  "rca of the issue": "N/A — no regressions found. Original prod 405 was diagnosed in iteration_5 as a Vercel env-var/routing misconfig; the current fix (vercel.json rewrite + full-URL/relative fallback in BookingForm.jsx) is the correct mitigation and does not regress the working preview flow."
+}
