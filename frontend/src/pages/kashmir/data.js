@@ -21,6 +21,15 @@ export const scrollToQuote = () => {
   }
 };
 
+// Pre-select a package in the booking form, then reveal (scroll to) the form.
+// Does NOT open WhatsApp — WhatsApp only happens after the user submits the form.
+export const selectPackage = (packageValue) => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("dd-select-package", { detail: packageValue }));
+  }
+  scrollToQuote();
+};
+
 export const DEFAULT_WA_MSG =
   "Hi Discover Daze Holidays! I'm interested in the 6 Days Kashmir Super Deluxe Package. Please share the best price & availability.";
 
@@ -71,11 +80,11 @@ export const INCLUDED = [
 ];
 
 export const PRICING = [
-  { name: "Couple Package", price: "₹32,300", unit: "total", rooms: "1 Deluxe Room", tag: null },
-  { name: "Group of 5", price: "₹9,800", unit: "per person", rooms: "2 Rooms + 1 Extra Bed", tag: null },
-  { name: "Group of 6", price: "₹10,700", unit: "per person", rooms: "2 Rooms + 2 Extra Beds", tag: null },
-  { name: "Group of 9", price: "₹10,400", unit: "per person", rooms: "3 Rooms + 3 Extra Beds", tag: "Best Value" },
-  { name: "Budget Package", price: "₹8,000", unit: "per person", rooms: "Starting from", tag: null },
+  { name: "Couple Package", price: "₹32,300", unit: "total", rooms: "1 Deluxe Room", tag: null, formValue: "Couple Package — ₹32,300" },
+  { name: "Group of 5", price: "₹9,800", unit: "per person", rooms: "2 Rooms + 1 Extra Bed", tag: null, formValue: "Group of 5 — ₹9,800/person" },
+  { name: "Group of 6", price: "₹10,700", unit: "per person", rooms: "2 Rooms + 2 Extra Beds", tag: null, formValue: "Group of 6 — ₹10,700/person" },
+  { name: "Group of 9", price: "₹10,400", unit: "per person", rooms: "3 Rooms + 3 Extra Beds", tag: "Best Value", formValue: "Group of 9 — ₹10,400/person (Best Value)" },
+  { name: "Budget Package", price: "₹8,000", unit: "per person", rooms: "Starting from", tag: null, formValue: "Budget Package — from ₹8,000/person" },
 ];
 
 export const WHY_US = [

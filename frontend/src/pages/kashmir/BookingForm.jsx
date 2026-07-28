@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -21,6 +21,19 @@ export default function BookingForm() {
   const [form, setForm] = useState(empty);
   const [loading, setLoading] = useState(false);
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  // When a user clicks "Book Now" on a pricing card, pre-select that package here
+  // (WhatsApp is NOT opened — only after the form is submitted).
+  useEffect(() => {
+    const onSelect = (e) => {
+      if (e.detail) {
+        setForm((f) => ({ ...f, package: e.detail }));
+        toast.message("Package selected — fill the form to confirm your booking.");
+      }
+    };
+    window.addEventListener("dd-select-package", onSelect);
+    return () => window.removeEventListener("dd-select-package", onSelect);
+  }, []);
 
   const buildWaMessage = () =>
     `Hi Discover Daze Holidays! I'd like to BOOK the 6 Days Kashmir Super Deluxe Package (Flat 30% OFF).\n\n` +

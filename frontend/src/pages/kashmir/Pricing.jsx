@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Reveal, SectionHeading } from "./shared";
 import { Star } from "lucide-react";
 import { WhatsAppButton } from "./CtaButtons";
-import { PRICING, waLink } from "./data";
+import { PRICING, selectPackage } from "./data";
 
 export default function Pricing() {
   return (
@@ -42,10 +42,9 @@ export default function Pricing() {
                   <span className="font-display text-4xl font-semibold text-[#D4AF37]">{p.price}</span>
                   <span className="text-sm text-white/60">{p.unit}</span>
                 </div>
-                <motion.a
-                  href={waLink(`Hi! I'd like to book the "${p.name}" (${p.price} ${p.unit}) of the 6 Days Kashmir Super Deluxe Package.`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <motion.button
+                  type="button"
+                  onClick={() => selectPackage(p.formValue)}
                   data-testid={`pricing-book-btn-${i}`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
@@ -56,7 +55,7 @@ export default function Pricing() {
                   }`}
                 >
                   Book Now
-                </motion.a>
+                </motion.button>
               </Reveal>
             );
           })}
