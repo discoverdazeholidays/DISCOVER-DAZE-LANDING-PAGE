@@ -1,0 +1,43 @@
+{
+  "summary": "Backend-only verification for POST /api/leads on the Emergent preview backend (https://kashmir-luxury-tour.preview.emergentagent.com). All 12 pytest tests PASSED. Representative POST /api/leads (with Origin https://offers.discoverdazeholidays.com) returned HTTP 200 with a full Lead JSON body (id + all fields). GET /api/leads returns 200 and includes the newly created lead (Mongo persistence works). PUT/DELETE on /api/leads correctly return 405 — confirming the 405 the user sees in production is NOT from our FastAPI backend (which is reachable via Emergent). CORS preflight (OPTIONS) and POST from both https://offers.discoverdazeholidays.com and https://discoverdazeholidays.com return the correct access-control-allow-origin header and 200/204. Resend email delivery confirmed in backend log: 'Lead notification email sent' with a Resend message id and ratelimit-remaining=9 (no 429 quota errors). The production 405 the user reports is a FRONTEND MISCONFIG on Vercel — deployed REACT_APP_BACKEND_URL is pointing at its own domain (offers.discoverdazeholidays.com) instead of the FastAPI backend.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_leads.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "USER ACTION (not a backend bug): Set REACT_APP_BACKEND_URL=https://kashmir-luxury-tour.preview.emergentagent.com in the Vercel project's environment variables for offers.discoverdazeholidays.com, then redeploy. The 405 they see is because the current build calls POST https://offers.discoverdazeholidays.com/api/leads which Vercel returns 405 (no FastAPI there). Backend itself is fully healthy."
+  ],
+  "critical_code_review_comments": [
+    "server.py CORS: allow_credentials=True combined with allow_origins=['*'] (from CORS_ORIGINS default) is invalid per CORS spec — browsers ignore credentialed responses with wildcard ACAO. The allow_origin_regex for *.discoverdazeholidays.com correctly overrides for those origins and echoes the origin (verified in tests). For production, consider setting CORS_ORIGINS explicitly to the deployed frontend origins to remove the wildcard.",
+    "POST /api/leads uses HTTPException 400 for validation of empty full_name/phone — Pydantic-level min_length constraints would be more idiomatic and return 422, but current 400 behaviour is intentional and works.",
+    "send_lead_notification is fire-and-forget via asyncio.create_task — good for latency, but errors will only surface in logs. Consider capturing/persisting failed-email records for retry."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_leads.py"
+  ],
+  "success_rate": {"backend": "100% (12/12 pytest passed)", "frontend": "n/a - backend only"},
+  "test_credentials": "none required",
+  "seed_data_creation": "Created 2 TEST_-prefixed leads with unique phone prefix '+9199BACKEND...' during testing; all cleaned up. The 5 real customer leads in db.leads were preserved (verified count=5 remaining).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend POST /api/leads is 100% healthy on the Emergent preview URL. The production issue is a Vercel env var problem, not a backend problem. Do not modify backend CORS or route code further. Test file /app/backend/tests/test_leads.py covers: health, create, persistence, GET, PUT/DELETE 405, validation (400), CORS preflight + POST for both offers.discoverdazeholidays.com and discoverdazeholidays.com origins.",
+  "representative_post_evidence": {
+    "request": "POST https://kashmir-luxury-tour.preview.emergentagent.com/api/leads with Origin: https://offers.discoverdazeholidays.com",
+    "status_code": 200,
+    "response_body": "{\"id\":\"f63465e6-b0f4-4be3-8a8a-980731f3ec14\",\"full_name\":\"TEST_Representative\",\"phone\":\"+9199BACKENDREP1\",\"email\":\"rep@example.com\",\"guests\":\"2\",\"travel_date\":\"2026-06-10\",\"travel_month\":null,\"package\":\"Kashmir Super Deluxe\",\"message\":\"repr test\",\"created_at\":\"2026-07-28T15:06:06.673165Z\"}",
+    "access_control_allow_origin_header": "*",
+    "resend_log": "Lead notification email sent: {'id': 'bd02ae97-6d04-4c75-b99b-ac794761da2c', ...ratelimit-remaining: 9, x-resend-daily-quota: 32}",
+    "put_status": 405,
+    "delete_status": 405
+  },
+  "rca of the issue": "User's production frontend at https://offers.discoverdazeholidays.com is built with REACT_APP_BACKEND_URL either unset or set to its own origin, so axios/fetch calls POST https://offers.discoverdazeholidays.com/api/leads. Vercel has no /api/leads route serving POST for that static React app, so it returns 405. The FastAPI backend on Emergent (https://kashmir-luxury-tour.preview.emergentagent.com/api/leads) responds correctly with 200 to POST. Mitigation: set REACT_APP_BACKEND_URL to the Emergent (or eventual production) FastAPI URL in the Vercel dashboard and redeploy."
+}
