@@ -1,0 +1,19 @@
+{
+  "summary": "RETEST after fix to BookingForm WhatsApp handoff. All previously identified bugs are resolved. Backend pytest: 5/5 pass (POST/GET /api/leads persist email + travel_date; backend log shows 'Lead notification email sent' via Resend). Frontend: filled submit now calls window.open exactly once with a wa.me URL that starts 'https://wa.me/917006186445?text=' and contains '30%25%20OFF' (properly encoded). NO React error overlay, NO URIError, success toast appears, POST /api/leads returns 200, console logs '[track] Lead conversion {value:9800,currency:INR}'. Regressions verified: empty name/phone submit shows error toast and does NOT POST or open WhatsApp (window.open calls=0); '/' and '/kashmir-super-deluxe' both render the landing page; mobile-cta-bar is visible at 390px viewport after scrolling.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_leads.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix is clean: buildWaMessage returns plain text with real \\n, waLink() applies encodeURIComponent once — no more double-decoding brittleness.",
+    "trackLead now only fires on successful POST — no more inflated pixel conversions on network failure. Verified: on filled successful submit, exactly one '[track] Lead conversion' log."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A - public landing page",
+  "seed_data_creation": "Created TEST_Playwright Retest lead during UI test; deleted 2 TEST_ leads from MongoDB at end.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The iteration_2 HIGH bug (URIError from decodeURIComponent on '30% OFF') is fixed and verified. WhatsApp handoff URL sample: https://wa.me/917006186445?text=Hi%20Discover%20Daze%20Holidays!%20I'd%20like%20to%20BOOK%20the%206%20Days%20Kashmir%20Super%20Deluxe%20Package%20(Flat%2030%25%20OFF).%0A%0AName%3A%20...  Nothing else needs re-testing.",
+  "rca of the issue": "Fix applied by main agent: buildWaMessage() in BookingForm.jsx returns plain-text with real newlines; waLink() in data.js does the single encodeURIComponent. Removed the erroneous decodeURIComponent that had been throwing URIError on the literal '30% OFF'. Verified end-to-end by overriding window.open in Playwright and inspecting the captured URL."
+}

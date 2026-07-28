@@ -23,10 +23,10 @@ export default function BookingForm() {
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const buildWaMessage = () =>
-    `Hi Discover Daze Holidays! I'd like to BOOK the 6 Days Kashmir Super Deluxe Package (Flat 30% OFF).%0A%0A` +
-    `Name: ${form.full_name || "-"}%0APhone: ${form.phone || "-"}%0AEmail: ${form.email || "-"}%0A` +
-    `Travel Date: ${form.travel_date || "-"}%0ATravellers: ${form.guests || "-"}%0APackage: ${form.package || "-"}` +
-    (form.message ? `%0AMessage: ${form.message}` : "");
+    `Hi Discover Daze Holidays! I'd like to BOOK the 6 Days Kashmir Super Deluxe Package (Flat 30% OFF).\n\n` +
+    `Name: ${form.full_name || "-"}\nPhone: ${form.phone || "-"}\nEmail: ${form.email || "-"}\n` +
+    `Travel Date: ${form.travel_date || "-"}\nTravellers: ${form.guests || "-"}\nPackage: ${form.package || "-"}` +
+    (form.message ? `\nMessage: ${form.message}` : "");
 
   const submitLead = async () => {
     if (!form.full_name.trim() || !form.phone.trim()) {
@@ -48,7 +48,7 @@ export default function BookingForm() {
       toast.success("Enquiry received! Connecting you on WhatsApp now…");
       return true;
     } catch (e) {
-      trackLead({ value: 9800, currency: "INR" });
+      // Don't lose the lead — still hand off to WhatsApp, but don't inflate conversion counts.
       toast.message("Opening WhatsApp to complete your enquiry…");
       return true;
     } finally {
@@ -59,7 +59,7 @@ export default function BookingForm() {
   const handleBook = async (e) => {
     e.preventDefault();
     const ok = await submitLead();
-    if (ok) window.open(waLink(decodeURIComponent(buildWaMessage())), "_blank");
+    if (ok) window.open(waLink(buildWaMessage()), "_blank");
   };
 
   const handleCall = async () => {
