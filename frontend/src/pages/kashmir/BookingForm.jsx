@@ -94,10 +94,11 @@ export default function BookingForm() {
     // Desktop: pre-open the tab synchronously inside the click gesture so it is NOT
     // blocked after the await. Mobile: navigate the current tab (most reliable for deep links).
     const preWin = isMobile() ? null : window.open("", "_blank");
-    const ok = await postLead();
-    if (!ok) {
-      if (preWin) preWin.close();
-      return; // backend failed — show error, do not silently continue
+    const saved = await postLead();
+    // If saving failed, postLead() already showed the error. We STILL open WhatsApp with the
+    // prefilled message so the enquiry always reaches us and no lead is lost.
+    if (!saved) {
+      toast.message("Opening WhatsApp so we still receive your enquiry…");
     }
     if (preWin && !preWin.closed) {
       preWin.location.href = url;
@@ -108,8 +109,8 @@ export default function BookingForm() {
 
   const handleCall = async () => {
     if (!validate()) return;
-    const ok = await postLead();
-    if (ok) window.location.href = `tel:${PHONE_TEL}`;
+    await postLead();
+    window.location.href = `tel:${PHONE_TEL}`;
   };
 
   return (
