@@ -1,0 +1,43 @@
+{
+  "summary": "Backend + Frontend both fully green. POST /api/leads returns HTTP 200 with created lead JSON (verified via pytest and via live Playwright submits from the app). Backend: 12/12 pytest passed in /app/backend/tests/test_leads.py (health, POST 200 + persistence via GET, PUT/DELETE 405, missing name/phone 400, CORS preflight + POST for offers.discoverdazeholidays.com and discoverdazeholidays.com). Resend 'Lead notification email sent' log confirmed for every POST (200, ratelimit-remaining=9-7). Frontend Playwright on the preview URL — all 5 flows PASSED: (1) Desktop happy path (1920x800): exactly ONE POST to https://kashmir-luxury-tour.preview.emergentagent.com/api/leads -> 200, success toast 'Enquiry received! Opening WhatsApp…' shown, no runtime overlay, WhatsApp URL captured on preWin.location.href starts with https://wa.me/917006186445?text= and contains encoded Name + Phone + '30%25'. (2) GA4 exactly-once: submitted TWO different leads back-to-back — dataLayer contains exactly ONE ['event','generate_lead',{send_to:G-BBKY82CFQG,value:9800,currency:INR}] and TWO ['event','form_submit',...] entries, and one ['config','G-BBKY82CFQG'] at load. (3) THE REPORTED 404 BUG: page.route('**/api/leads', fulfill status=404) — WhatsApp STILL OPENS with the prefilled message (captured URL starts with https://wa.me/917006186445?text= and contains the name/phone), toast.error 'Submission failed: Request failed with status code 404' + toast.message 'Opening WhatsApp so we still receive your enquiry…' both shown, and generate_lead did NOT fire (0 entries, conversion only counts real saves). (4) Mobile (iPhone UA override, 390x844): POST goes to /api/leads and navigation to wa.me happens via window.location.href (intercepted via page.route '**/wa.me/**'); window.open NOT invoked (verified via monkey-patched window.open flag). (5) Pricing regression: 5 pricing-book-btn-N buttons found; clicking pricing-book-btn-0 did NOT open a window and did NOT navigate to wa.me — the package was pre-selected ('Couple Package — ₹32,300' shown in lead-package-select) and 'Package selected' toast appeared. Both routes render lead form: '/' and '/kashmir-super-deluxe' (200).",
+  "exact_http_status_post_api_leads": 200,
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_leads.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "BookingForm.jsx handleBook (lines 90-108) correctly ALWAYS opens WhatsApp regardless of postLead() success — verified by 404 simulation. This is the correct fix for the reported prod 404 issue (Vercel routing).",
+    "tracking.js generateLeadFired module-level guard correctly fires GA4 generate_lead exactly once per session even across multiple submits. form_submit correctly fires each time. GA4 config G-BBKY82CFQG loads at page init.",
+    "API base logic (BookingForm.jsx line 19-20) branches on full-URL vs relative-path fallback ('/api'). In preview the absolute-URL branch is used; the relative-path branch would activate on Vercel where vercel.json rewrites /api/* to the backend. Cannot be validated live from the preview.",
+    "server.py CORS: allow_credentials=True with wildcard '*' via CORS_ORIGINS default is technically invalid per CORS spec, but currently benign because allow_origin_regex covers *.discoverdazeholidays.com. Recommend setting CORS_ORIGINS explicitly to comma-separated origins in prod .env (unchanged from iteration_6 note)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (12/12 pytest)", "frontend": "100% (5/5 flows: desktop happy, GA4 exactly-once, 404 resilience, mobile, pricing regression + /kashmir-super-deluxe route)"},
+  "test_credentials": "none",
+  "seed_data_creation": "Created 6 QA404 test leads during testing (2 desktop happy path, 1 mobile, plus route-fulfilled 404 attempts didn't hit backend, plus route-intercepted mobile wa.me — the POSTs that hit backend). All 6 DELETED via targeted MongoDB delete_many({'phone': {'$regex': 'QA404'}}). Total leads went from 21 -> 15 (real customer + prior iteration test leads preserved).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview backend returns 200 on POST /api/leads. The prod 404 was a Vercel routing/env issue and cannot be reproduced in preview — it MUST be simulated via page.route('**/api/leads', fulfill status=404). The current BookingForm.jsx correctly ALWAYS opens WhatsApp with the prefilled message even when postLead() fails. Cleanup pattern for future test runs: db.leads.delete_many({'phone': {'$regex': '<UNIQUE_MARKER>'}}). Do NOT delete all leads — 15 exist (real + prior test leads).",
+  "evidence": {
+    "desktop_post_status": 200,
+    "desktop_post_url": "https://kashmir-luxury-tour.preview.emergentagent.com/api/leads",
+    "desktop_wa_url_prefix": "https://wa.me/917006186445?text=Hi%20Discover%20Daze%20Holidays!%20I'd%20like%20to%20BOOK%20the%206%20Days%20Kashmir%20Super%20Deluxe%20Package%20(Flat%2030%25%20OFF).%0A%0AName%3A%20TESTQA404%20First%20User%0APhone%3A%20%2B91QA40411111...",
+    "ga4_generate_lead_count_after_2_submits": 1,
+    "ga4_form_submit_count_after_2_submits": 2,
+    "ga4_config_id": "G-BBKY82CFQG",
+    "404_simulation_wa_url": "https://wa.me/917006186445?text=Hi%20Discover%20Daze%20Holidays!...Name%3A%20TESTQA404%20Fail%20Case...",
+    "404_simulation_generate_lead_count": 0,
+    "404_simulation_toasts": ["Submission failed: Request failed with status code 404", "Opening WhatsApp so we still receive your enquiry…"],
+    "mobile_window_open_invoked": false,
+    "mobile_wa_navigation_url": "https://wa.me/917006186445?text=...TESTQA404%20Mobile...",
+    "pricing_book_btn_count": 5,
+    "pricing_book_btn_opens_window": false,
+    "pricing_book_btn_preselects_package": "Couple Package — ₹32,300",
+    "kashmir_super_deluxe_route_status": 200,
+    "resend_log_sample": "Lead notification email sent: id=9e4d6e8b-..., ratelimit-remaining=7"
+  },
+  "rca_of_the_issue": "The reported production 404 on the lead form is a Vercel routing/env misconfiguration (not backend, which returns 200). The current fix in BookingForm.jsx (handleBook ALWAYS opens WhatsApp with the prefilled message regardless of postLead() success + surfaces the real error via toast.error) is verified correct — under a simulated 404 the enquiry still reaches the merchant via WhatsApp and the GA4 conversion is (correctly) suppressed. vercel.json rewrite /api/* -> backend + the same-origin '/api' fallback in the API base is the correct additional mitigation. No regressions in preview."
+}
