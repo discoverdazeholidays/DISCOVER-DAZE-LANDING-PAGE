@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Reveal, SectionHeading } from "./shared";
 import { waLink, PHONE_TEL, GUEST_OPTIONS, PACKAGE_OPTIONS } from "./data";
-import { trackLead } from "./tracking";
+import { trackFormSubmit } from "./tracking";
 
 // Backend base URL. If REACT_APP_BACKEND_URL is a full http(s) URL, call it directly.
 // Otherwise fall back to a same-origin "/api" path, which works with the Vercel
@@ -58,6 +58,8 @@ export default function BookingForm() {
 
   // Save the lead to the DB (backend also emails discoverdazeholidays@gmail.com via Resend).
   // Returns true only on success. On failure it surfaces the real error and returns false.
+  // NOTE: GA4/conversion tracking is fired by handleBook (not here) so the redirect can wait
+  // for the GA4 event_callback before opening WhatsApp.
   const postLead = async () => {
     setLoading(true);
     try {
@@ -70,7 +72,6 @@ export default function BookingForm() {
         package: form.package || "6 Days Kashmir Super Deluxe",
         message: form.message,
       });
-      trackLead({ value: 9800, currency: "INR" });
       toast.success("Enquiry received! Opening WhatsApp…");
       return true;
     } catch (err) {
@@ -91,19 +92,24 @@ export default function BookingForm() {
     e.preventDefault();
     if (!validate()) return;
     const url = waLink(buildWaMessage());
-    // Desktop: pre-open the tab synchronously inside the click gesture so it is NOT
-    // blocked after the await. Mobile: navigate the current tab (most reliable for deep links).
+    // Desktop: pre-open a tab synchronously inside the click gesture so it is NOT blocked
+    // after the await. Mobile: navigate the current tab (most reliable for deep links).
     const preWin = isMobile() ? null : window.open("", "_blank");
+    const go = () => {
+      if (preWin && !preWin.closed) preWin.location.href = url;
+      else window.location.href = url;
+    };
+
     const saved = await postLead();
-    // If saving failed, postLead() already showed the error. We STILL open WhatsApp with the
-    // prefilled message so the enquiry always reaches us and no lead is lost.
-    if (!saved) {
-      toast.message("Opening WhatsApp so we still receive your enquiry…");
-    }
-    if (preWin && !preWin.closed) {
-      preWin.location.href = url;
+    if (saved) {
+      // Fire the GA4 form_submit conversion and open WhatsApp ONLY after the event has been
+      // sent (event_callback), with a fallback timeout. One successful form => one form_submit.
+      trackFormSubmit({ value: 9800, currency: "INR" }, go);
     } else {
-      window.location.href = url;
+      // Save failed — error already shown. Still open WhatsApp so the enquiry reaches us,
+      // but do NOT fire the conversion event (only real, saved leads count).
+      toast.message("Opening WhatsApp so we still receive your enquiry…");
+      go();
     }
   };
 
