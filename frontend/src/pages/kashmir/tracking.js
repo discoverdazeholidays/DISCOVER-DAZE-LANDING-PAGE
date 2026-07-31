@@ -63,39 +63,56 @@ export function initTracking() {
   }
 }
 
-// Fire a lead / form-submission event across GA4, Meta Pixel and Google Ads.
-export function trackLead(payload = {}) {
+// Fire the GA4 "form_submit" conversion (plus generate_lead once, Meta Lead and Google Ads
+// conversion) RELIABLY, then run onDone(). onDone is used to delay the WhatsApp redirect until
+// the GA4 beacon has actually been sent (gtag event_callback), with a fallback timeout so the
+// user is never blocked for more than ~1.2s. Call this ONLY after a successful form submission.
+export function trackFormSubmit(payload = {}, onDone = () => {}) {
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    try { onDone(); } catch (e) {}
+  };
+
   try {
-    if (isReal(META_PIXEL_ID) && window.fbq) {
-      window.fbq("track", "Lead", payload);
+    // Meta Pixel (best-effort, no callback dependency)
+    if (isReal(META_PIXEL_ID) && window.fbq) window.fbq("track", "Lead", payload);
+
+    // Google Ads conversion (best-effort)
+    if (window.gtag && isReal(GOOGLE_ADS_ID)) {
+      const conv = isReal(GOOGLE_ADS_LABEL)
+        ? `${GOOGLE_ADS_ID}/${GOOGLE_ADS_LABEL}`
+        : GOOGLE_ADS_ID;
+      window.gtag("event", "conversion", { send_to: conv, ...payload });
     }
-    if (window.gtag) {
-      // GA4 form-submission events
-      if (isReal(GA4_ID)) {
-        window.gtag("event", "form_submit", { send_to: GA4_ID, ...payload });
-        // GA4 lead conversion — fire EXACTLY ONCE per session, after a successful submit
-        if (!generateLeadFired) {
-          window.gtag("event", "generate_lead", { send_to: GA4_ID, ...payload });
-          generateLeadFired = true;
-          // eslint-disable-next-line no-console
-          console.log("[track] GA4 generate_lead (fired once)", GA4_ID);
-        }
+
+    if (window.gtag && isReal(GA4_ID)) {
+      // generate_lead — secondary event, fire once per session
+      if (!generateLeadFired) {
+        window.gtag("event", "generate_lead", { send_to: GA4_ID, ...payload });
+        generateLeadFired = true;
+        // eslint-disable-next-line no-console
+        console.log("[track] GA4 generate_lead (once)", GA4_ID);
       }
-      // Google Ads conversion
-      if (isReal(GOOGLE_ADS_ID)) {
-        const conv = isReal(GOOGLE_ADS_LABEL)
-          ? `${GOOGLE_ADS_ID}/${GOOGLE_ADS_LABEL}`
-          : GOOGLE_ADS_ID;
-        window.gtag("event", "conversion", { send_to: conv, ...payload });
-      }
+      // form_submit — the Google Ads conversion event. Redirect waits for its callback.
+      window.gtag("event", "form_submit", {
+        send_to: GA4_ID,
+        ...payload,
+        event_callback: finish,
+      });
+      // eslint-disable-next-line no-console
+      console.log("[track] GA4 form_submit sent", GA4_ID);
+      // Fallback: never block the user longer than ~1.2s if the callback doesn't fire
+      setTimeout(finish, 1200);
+      return;
     }
-    // Always log so the event is observable even with placeholder IDs
-    // eslint-disable-next-line no-console
-    console.log("[track] Lead conversion", payload);
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn("tracking error", e);
   }
+  // GA4/gtag not available -> proceed immediately so we never block the redirect
+  finish();
 }
 
 // Track a CTA click (WhatsApp / Call) as a soft conversion signal.
