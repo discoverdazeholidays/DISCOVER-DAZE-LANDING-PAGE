@@ -90,7 +90,11 @@ export function trackFormSubmit(payload = {}, onDone = () => {}) {
     if (window.gtag && isReal(GA4_ID)) {
       // generate_lead — secondary event, fire once per session
       if (!generateLeadFired) {
-        window.gtag("event", "generate_lead", { send_to: GA4_ID, ...payload });
+        window.gtag("event", "generate_lead", {
+          send_to: GA4_ID,
+          ...payload,
+          transport_type: "beacon",
+        });
         generateLeadFired = true;
         // eslint-disable-next-line no-console
         console.log("[track] GA4 generate_lead (once)", GA4_ID);
@@ -99,6 +103,7 @@ export function trackFormSubmit(payload = {}, onDone = () => {}) {
       window.gtag("event", "form_submit", {
         send_to: GA4_ID,
         ...payload,
+        transport_type: "beacon",
         event_callback: finish,
       });
       // eslint-disable-next-line no-console
